@@ -10,7 +10,8 @@ from aiogram.dispatcher.middlewares.base import BaseMiddleware
 # Импортируем engine, фабрику сессий и Base из database.py
 from database import engine, async_session
 from models import Base
-from handlers.user import users_router
+from handlers.start import start_router
+from handlers.buy import buy_router
 
 load_dotenv()
 
@@ -44,7 +45,11 @@ async def main():
     dp.update.middleware(DbSessionMiddleware())
 
     # Подключаем роутеры
-    dp.include_router(users_router)
+    dp.include_routers(
+        start_router, 
+        buy_router
+
+        )
 
     # 1. Создаём таблицы в БД
     print("Проверяем и создаем таблицы в базе данных...")
