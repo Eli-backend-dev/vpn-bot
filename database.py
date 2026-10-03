@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from urllib.parse import quote_plus
 from sqlalchemy import select
+from datetime import datetime, timezone
 
-from models import Base, User
+from models import Base, User, Order
 
 
 load_dotenv()
@@ -43,6 +44,52 @@ class Database:
                 full_name=full_name
             )
             self.session.add(new_user)
-            await self.session.commit() # Сохраняет данные в БД    
+            await self.session.commit() # Сохраняет данные в БД
+
+
+
+
+
+    async def create_order(self, user_id: int, period_code: str, amount: int) -> Order:
+        """Создает новый заказ со статусом 'pending'"""
+        order = Order(
+            user_id=user_id,
+            period_code=period_code, #  order = товар кола бургер
+            amount=amount,
+            status="pending"
+        )
+        self.session.add(order)  # Заказ формируется и ждёт оплаты
+        await self.session.commit() # «Готовьте! Заказ официальный!». И на экране загорается номер: Заказ №45.
+        await self.session.refresh(order) #
+        return order #
+
+    # 2. Получение заказа по его ID
+    async def get_order(self, order_id: int) -> Order | None:
+        """Находит заказ по его уникальному номеру"""
+        result = await self.session.execute(
+            select(Order).where(Order.id == order_id)
+        )
+        return result.scalar_one_or_none()
+
+    # 3. Отметка заказа как оплаченного
+    async def mark_order_as_paid(self, order_id: int) -> bool:
+        """Меняет статус заказа на 'paid' и фиксирует время оплаты"""
+        order = await self.get_order(order_id)
+        if order and order.status == "pending":
+            order.status = "paid"
+            order.paid_at = datetime.now(timezone.utc)
+            await self.session.commit()
+            return True
+        return False
+
+    # 4. Получение всей истории заказов пользователя
+    async def get_user_orders(self, user_id: int) -> list[Order]:
+        """Возвращает список всех заказов пользователя от новых к старым"""
+        result = await self.session.execute(
+            select(Order)
+            .where(Order.user_id == user_id)
+            .order_by(Order.created_at.desc())
+        )
+        return list(result.scalars().all())            
 
     

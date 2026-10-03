@@ -22,14 +22,18 @@ class User(Base):
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    period_code = Column(String, nullable=False) # buy_period_1m
-    amount = Column(Integer, nullable=False)     # 150
-    status = Column(String, default="pending")   # pending / paid / canceled
+    id = Column(Integer, primary_key=True, autoincrement=True) # Создай столбец id, храни там целые числа, сделай его уникальным номером записи и сам автоматически увеличивай его на +1 для каждого нового заказа
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False) # Создай столбец user_id для больших чисел, обязательно свяжи его с таблицей пользователей и не разрешай создавать заказ без указания пользователя
+    period_code = Column(String, nullable=False) # Создай текстовый столбец period_code, в который обязательно нужно записывать код выбранного периода подписки
+    amount = Column(Integer, nullable=False)     # Создай столбец amount для целых чисел, в который обязательно нужно записывать итоговую стоимость заказа в рублях
+    status = Column(String, default="pending")   # pending / paid / canceled Создай текстовый столбец status, и при создании каждого нового заказа автоматически записывай туда слово "pending" (ожидает оплаты)
     created_at = Column(
         DateTime(timezone=True), 
         default=lambda: datetime.now(timezone.utc)
-    )
+    )# В ней фиксируется точный момент, когда пользователь нажал кнопку «Купить» и сформировал счёт.
+    paid_at = Column(DateTime(timezone=True), nullable=True) # время когда получили оплату
 
-# надо закончить логику в базе данных   об истории и сохранение заказов 
+
+
+
+# 
