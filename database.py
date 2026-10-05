@@ -62,6 +62,8 @@ class Database:
         await self.session.commit() # «Готовьте! Заказ официальный!». И на экране загорается номер: Заказ №45.
         await self.session.refresh(order) #
         return order #
+    
+
 
     # 2. Получение заказа по его ID
     async def get_order(self, order_id: int) -> Order | None:
@@ -70,6 +72,8 @@ class Database:
             select(Order).where(Order.id == order_id)
         )
         return result.scalar_one_or_none()
+
+
 
     # 3. Отметка заказа как оплаченного
     async def mark_order_as_paid(self, order_id: int) -> bool:
@@ -82,6 +86,9 @@ class Database:
             return True
         return False
 
+
+
+
     # 4. Получение всей истории заказов пользователя
     async def get_user_orders(self, user_id: int) -> list[Order]:
         """Возвращает список всех заказов пользователя от новых к старым"""
@@ -90,6 +97,7 @@ class Database:
             .where(Order.user_id == user_id)
             .order_by(Order.created_at.desc())
         )
-        return list(result.scalars().all())            
+        return list(result.scalars().all())      
 
+    
     
